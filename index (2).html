@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Cricket Diet B Demo Login</title>
+<style>:root{--bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;--primary:#16a34a;--danger:#ef4444}*{box-sizing:border-box}body{margin:0;font-family:Arial;background:var(--bg);color:var(--text);padding:14px}.wrap{max-width:1100px;margin:auto}.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid var(--border);padding:7px;vertical-align:top}th{background:#ecfccb}.time{font-weight:700;background:#f0fdf4}input{width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;margin:4px 0 10px}button{background:var(--primary);color:#fff;border:0;border-radius:10px;padding:10px 12px;font-weight:700;margin:3px}.btn2{background:#334155}.danger{background:var(--danger)}.alarm{display:flex;justify-content:space-between;border:1px solid var(--border);border-radius:10px;padding:10px;margin:6px 0}.small{color:var(--muted);font-size:.85rem}.hidden{display:none}</style>
+</head>
+<body><div class="wrap">
+<h1>Cricket Diet Demo Login</h1><p class="small">Local browser demo only. Not secure public login.</p>
+<div id="loginCard" class="card"><h2>Login / Signup</h2><input id="uname" placeholder="Username"><input id="pin" type="password" placeholder="PIN"><button onclick="signup()">Create Profile</button><button class="btn2" onclick="login()">Login</button><p id="loginMsg" class="small"></p></div>
+<div id="appCard" class="hidden"><div class="card"><h2 id="hello"></h2><button class="danger" onclick="logout()">Logout</button><button class="btn2" onclick="notify()">Enable Notifications</button><button class="btn2" onclick="test()">Test Alarm</button></div><div class="card"><h2>Diet Chart</h2><div style="overflow-x:auto"><table id="dietTable"></table></div></div><div class="card"><h2>My Alarms</h2><div id="alarmList"></div><input type="time" id="ct"><input type="text" id="cm" placeholder="Message"><button onclick="add()">Add Alarm</button></div></div>
+</div>
+<script>
+const days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const chart=[['6:30 AM','Water','Water','Water','Water','Water','Water','Water'],['7:00 AM','Eggs+roti+milk','Poha+curd','Paneer paratha','Oats+milk','Eggs+toast','Idli+sambar','Stuffed paratha'],['10:30 AM','Apple+nuts','Banana sandwich','Orange+nuts','Fruit+paneer','Banana+chana','Apple sandwich','Fruit+nuts'],['1:00 PM','Roti+dal+chicken','Rice+rajma','Roti+dal+paneer','Rice+chicken','Roti+egg curry','Rice+chole+paneer','Roti+chicken/fish'],['2:15 PM','Banana+curd','PB sandwich','Banana+milk','Poha+curd','Banana+PB toast','Fruit+curd','Banana+sandwich'],['3–7 PM','Water+fruit','Water+fruit','Electrolyte drink','Water+fruit','Electrolyte drink','Water+fruit','Water+fruit'],['7:15 PM','Milk+banana','Curd+fruit','Egg/paneer sandwich','Milk+banana','Chicken/paneer','Milk+fruit','Curd+banana'],['8:15 PM','Paneer dinner','Chicken dinner','Egg curry','Fish/chicken','Paneer dinner','Chicken dinner','Dal+eggs'],['9:15 PM','Milk optional','Milk optional','Milk optional','Milk optional','Milk optional','Milk optional','Milk optional'],['9:30 PM','Sleep','Sleep','Sleep','Sleep','Sleep','Sleep','Sleep']];
+const builtin=[{t:'06:30',m:'Wake water'},{t:'07:00',m:'Breakfast'},{t:'10:30',m:'Tiffin'},{t:'13:00',m:'Lunch'},{t:'14:15',m:'Pre practice'},{t:'15:00',m:'Practice'},{t:'19:15',m:'Recovery'},{t:'20:15',m:'Dinner'},{t:'21:15',m:'Milk'},{t:'21:30',m:'Sleep'}];
+const storage={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},remove(k){try{localStorage.removeItem(k)}catch(e){}}};
+let users=JSON.parse(storage.get('B_users')||'{}');
+users['arnav']={pin:'1976'}; storage.set('B_users',JSON.stringify(users));
+let current=null;
+function table(){let t='<tr><th>Time</th>'+days.map(d=>`<th>${d}</th>`).join('')+'</tr>';for(const r of chart){t+=`<tr><td class="time">${r[0]}</td>`+r.slice(1).map(x=>`<td>${x}</td>`).join('')+'</tr>'}document.getElementById('dietTable').innerHTML=t}
+function userKey(){return 'B_alarms_'+current}
+function alarms(){return builtin.concat(JSON.parse(storage.get(userKey())||'[]'))}
+function renderAlarms(){document.getElementById('alarmList').innerHTML=alarms().map(a=>`<div class="alarm"><div><b>${a.t}</b><br><span class="small">${a.m}</span></div>${a.id?`<button class="danger" onclick="rem('${a.id}')">Remove</button>`:'<span class="small">Built-in</span>'}</div>`).join('')}
+function signup(){const u=document.getElementById('uname').value.trim(),p=document.getElementById('pin').value.trim();if(!u||!p)return msg('Enter username and PIN');if(users[u])return msg('User exists');users[u]={pin:p};storage.set('B_users',JSON.stringify(users));msg('Profile created. Now login.')}
+function login(){const u=document.getElementById('uname').value.trim(),p=document.getElementById('pin').value.trim();if(!users[u]||users[u].pin!==p)return msg('Wrong username/PIN');current=u;storage.set('B_current',u);showApp()}
+function showApp(){document.getElementById('loginCard').classList.add('hidden');document.getElementById('appCard').classList.remove('hidden');document.getElementById('hello').textContent='Hello '+current;renderAlarms();table()}
+function logout(){current=null;storage.remove('B_current');document.getElementById('loginCard').classList.remove('hidden');document.getElementById('appCard').classList.add('hidden')}
+function add(){const t=document.getElementById('ct').value,m=document.getElementById('cm').value.trim();if(!t||!m)return alert('Fill time and message');const a=JSON.parse(storage.get(userKey())||'[]');a.push({id:Date.now()+'',t,m});storage.set(userKey(),JSON.stringify(a));document.getElementById('ct').value='';document.getElementById('cm').value='';renderAlarms()}
+function rem(id){const a=JSON.parse(storage.get(userKey())||'[]').filter(x=>x.id!==id);storage.set(userKey(),JSON.stringify(a));renderAlarms()}
+function notify(){if('Notification'in window)Notification.requestPermission()}
+function beep(){const c=new AudioContext(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);g.frequency.value=880;g.gain.value=.5;o.start();setTimeout(()=>o.stop(),700)}
+function say(x){if('speechSynthesis'in window)speechSynthesis.speak(new SpeechSynthesisUtterance(x))}
+function test(){beep();say('Alarm works');alert('Alarm works')}
+function msg(x){document.getElementById('loginMsg').textContent=x}
+function check(){if(!current)return;const d=new Date().toDateString();const stored=JSON.parse(storage.get('B_done_'+current)||'{}');let done={};if(stored.d===d)done=stored.k||{};const cur=String(new Date().getHours()).padStart(2,'0')+':'+String(new Date().getMinutes()).padStart(2,'0');alarms().forEach(a=>{const id=d+a.t+a.m;if(a.t===cur&&!done[id]){done[id]=1;storage.set('B_done_'+current,JSON.stringify({d,k:done}));beep();say(a.m);alert('⏰ '+a.m)}})}
+storage.remove('B_current');const saved=storage.get('B_current');if(saved&&users[saved]){current=saved;showApp()};table();renderAlarms();setInterval(check,5000);
+</script></body></html>
